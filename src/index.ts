@@ -1,13 +1,10 @@
 import 'reflect-metadata';
 import express, { Request, Response, NextFunction } from 'express';
-import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { identifyRouter } from './routes/identify';
 import { AppDataSource } from './database/data-source';
 import swaggerDocument from './swagger/swagger';
-
-// Load environment variables
-dotenv.config();
+import config from './config/config';
 
 const app = express();
 
@@ -22,12 +19,18 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
-// API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// API Documentation (disable in production if needed)
+if (!config.server.isProduction) {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+}
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'healthy',
+    environment: config.server.nodeEnv,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Routes
@@ -42,10 +45,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // Initialize database connection and start server
 AppDataSource.initialize()
   .then(() => {
-    const port = process.env.PORT || 3000;
-    app.listen(port, () => {
-      console.log(`Server is running on port ${port}`);
-      console.log(`API documentation available at http://localhost:${port}/api-docs`);
+    app.listen(config.server.port, () => {
+      console.log(`Server is running on port ${config.server.port}`);
+      if (!config.server.isProduction) {
+        console.log(`API documentation available at ${config.api.url}/api-docs`);
+      }
     });
   })
   .catch((error) => {

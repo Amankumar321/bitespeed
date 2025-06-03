@@ -1,4 +1,14 @@
 import { OpenAPIV3 } from 'openapi-types';
+import config from '../config/config';
+
+// Get base URL from environment or default to localhost
+const getServerUrl = (): string => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.API_URL || 'https://api.example.com'; // Replace with your production URL
+  }
+  const port = process.env.PORT || 3000;
+  return `http://localhost:${port}`;
+};
 
 const swaggerDocument: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -8,13 +18,13 @@ const swaggerDocument: OpenAPIV3.Document = {
     description: 'API for linking and managing customer contact information across multiple purchases',
     contact: {
       name: 'API Support',
-      email: 'support@example.com'
+      email: config.api.supportEmail
     }
   },
   servers: [
     {
-      url: 'http://localhost:3000',
-      description: 'Local Development Server'
+      url: config.api.url,
+      description: config.server.isProduction ? 'Production Server' : 'Development Server'
     }
   ],
   tags: [
