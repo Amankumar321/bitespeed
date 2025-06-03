@@ -19,10 +19,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
-// API Documentation (disable in production if needed)
-if (!config.server.isProduction) {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-}
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -47,9 +45,7 @@ AppDataSource.initialize()
   .then(() => {
     app.listen(config.server.port, () => {
       console.log(`Server is running on port ${config.server.port}`);
-      if (!config.server.isProduction) {
-        console.log(`API documentation available at ${config.api.url}/api-docs`);
-      }
+      console.log(`API documentation available at ${config.api.url}/api-docs`);
     });
   })
   .catch((error) => {
